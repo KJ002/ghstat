@@ -1,11 +1,12 @@
 extern crate chrono;
 
 use chrono::prelude::*;
-
 use serde_json::{json, Value};
-
 use std::{fs::File, io::{Read, Write}};
-use clap::{App, Arg, ArgMatches};
+
+use clap::Parser;
+
+mod args;
 
 fn read_cache() -> Option<serde_json::Value> {
     let mut buffer = String::new();
@@ -26,7 +27,7 @@ fn read_cache() -> Option<serde_json::Value> {
     }
 }
 
-fn update_cache(user: &str) -> std::io::Result<usize> {
+fn update_cache(user: &String) -> std::io::Result<usize> {
     let mut file: File = File::create("/home/james/.ghstats/cache.json")
         .expect("There was an issue fetching the the file");
 
@@ -35,7 +36,7 @@ fn update_cache(user: &str) -> std::io::Result<usize> {
     file.write(data.as_bytes())
 }
 
-fn get_github_data(user: &str) -> serde_json::Value {
+fn get_github_data(user: &String) -> serde_json::Value {
     let mut result = match ureq::get(format!("https://api.github.com/users/{}", user).as_str()).call() {
         Ok(response) => response.into_json::<serde_json::Value>().unwrap(),
         Err(_) => panic!("Error"),
@@ -46,7 +47,7 @@ fn get_github_data(user: &str) -> serde_json::Value {
     result
 }
 
-fn safe_read(user: &str) -> serde_json::Value {
+fn safe_read(user: &String) -> serde_json::Value {
     match read_cache() {
         Some(x) => x,
         None => {
@@ -57,11 +58,11 @@ fn safe_read(user: &str) -> serde_json::Value {
 }
 
 trait DisplayJson {
-    fn json_stdout(&self, key: &str);
+    fn json_stdout(&self, key: &String);
 }
 
 impl DisplayJson for serde_json::Value {
-    fn json_stdout(&self, key: &str) {
+    fn json_stdout(&self, key: &String) {
         fn operations(value: &Value) {
             match value {
                 Value::Null => println!("Null"),
@@ -76,44 +77,17 @@ impl DisplayJson for serde_json::Value {
     }
 }
 
-fn args() -> ArgMatches {
-    // Build Argument App with clap
-    return App::new("ghstats")
-        .version(env!("CARGO_PKG_VERSION"))
-        .author("James Butcher <jamesbutcher167@gmail.com>")
-        .about("Get Github statistics in the console!")
-        .arg(
-            Arg::new("KEY")
-                .short('k')
-                .long("config")
-                .takes_value(true)
-                .help("The key to retrieve from the Github api"),
-        )
-        .arg(
-            Arg::new("USER")
-                .short('u')
-                .long("user")
-                .takes_value(true)
-                .help("User to get statistic from")
-        )
-        .get_matches();
-}
-
 fn main() {
+    let args = args::Args::parse();
 
-    let args = args();
-
-    let user = args.value_of("USER").unwrap();
-    let key = args.value_of("KEY").unwrap();
-
-    let mut content = safe_read(user);
+    let mut content = safe_read(&args.user);
 
     let timestamp = content["ghstats_timestamp"].as_i64().unwrap_or_default();
 
     if Local::now().timestamp() - timestamp >= 60 {
-        update_cache(user).expect("Unable to request api data.");
-        content = safe_read(user)
+        update_cache(&args.user).expect("Unable to request api data.");
+        content = safe_read(&args.user)
     }
 
-    content.json_stdout(key)
+    content.json_stdout(&args.key)
 }

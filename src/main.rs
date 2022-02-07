@@ -26,17 +26,17 @@ fn read_cache() -> Option<serde_json::Value> {
     }
 }
 
-fn update_cache() -> std::io::Result<usize> {
+fn update_cache(user: &str) -> std::io::Result<usize> {
     let mut file: File = File::create("/home/james/.ghstats/cache.json")
         .expect("There was an issue fetching the the file");
 
-    let data = get_github_data().to_string();
+    let data = get_github_data(user).to_string();
 
     file.write(data.as_bytes())
 }
 
-fn get_github_data() -> serde_json::Value {
-    let mut result = match ureq::get("https://api.github.com/users/KJ002").call() {
+fn get_github_data(user: &str) -> serde_json::Value {
+    let mut result = match ureq::get(format!("https://api.github.com/users/{}", user).as_str()).call() {
         Ok(response) => response.into_json::<serde_json::Value>().unwrap(),
         Err(_) => panic!("Error"),
     };
@@ -46,11 +46,11 @@ fn get_github_data() -> serde_json::Value {
     result
 }
 
-fn safe_read() -> serde_json::Value {
+fn safe_read(user: &str) -> serde_json::Value {
     match read_cache() {
         Some(x) => x,
         None => {
-            update_cache().expect("Unable to request api data.");
+            update_cache(user).expect("Unable to request api data.");
             read_cache().expect("Unable to parse json.")
         }
     }
@@ -101,14 +101,19 @@ fn args() -> ArgMatches {
 
 fn main() {
 
-    let mut content = safe_read();
+    let args = args();
+
+    let user = args.value_of("USER").unwrap();
+    let key = args.value_of("KEY").unwrap();
+
+    let mut content = safe_read(user);
 
     let timestamp = content["ghstats_timestamp"].as_i64().unwrap_or_default();
 
     if Local::now().timestamp() - timestamp >= 60 {
-        update_cache().expect("Unable to request api data.");
-        content = safe_read()
+        update_cache(user).expect("Unable to request api data.");
+        content = safe_read(user)
     }
 
-    content.json_stdout("ghstats_timestamp")
+    content.json_stdout(key)
 }

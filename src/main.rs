@@ -4,8 +4,8 @@ use chrono::prelude::*;
 
 use serde_json::{json, Value};
 
-use std::fs::File;
-use std::io::{Read, Write};
+use std::{fs::File, io::{Read, Write}};
+use clap::{App, Arg, ArgMatches};
 
 fn read_cache() -> Option<serde_json::Value> {
     let mut buffer = String::new();
@@ -74,6 +74,29 @@ impl DisplayJson for serde_json::Value {
         }
         operations(&self[key])
     }
+}
+
+fn args() -> ArgMatches {
+    // Build Argument App with clap
+    return App::new("ghstats")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author("James Butcher <jamesbutcher167@gmail.com>")
+        .about("Get Github statistics in the console!")
+        .arg(
+            Arg::new("KEY")
+                .short('k')
+                .long("config")
+                .takes_value(true)
+                .help("The key to retrieve from the Github api"),
+        )
+        .arg(
+            Arg::new("USER")
+                .short('u')
+                .long("user")
+                .takes_value(true)
+                .help("User to get statistic from")
+        )
+        .get_matches();
 }
 
 fn main() {

@@ -4,7 +4,7 @@ mod args;
 mod display;
 
 use chrono::prelude::*;
-use serde_json::{json, Value};
+use serde_json::json;
 use std::{
     fs::File,
     io::{Read, Write},

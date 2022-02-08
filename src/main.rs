@@ -84,7 +84,7 @@ fn main() {
     let timestamp = content["ghstats_timestamp"].as_i64().unwrap_or_default();
     let refresh: i64 = match args.refresh {
         Some(delay) => delay,
-        None => 3600
+        None => 14400
     };
 
     if Local::now().timestamp() - timestamp >= refresh {

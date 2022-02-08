@@ -1,15 +1,16 @@
 extern crate chrono;
 
+mod args;
+mod display;
+
 use chrono::prelude::*;
 use serde_json::{json, Value};
 use std::{
     fs::File,
     io::{Read, Write},
 };
-
 use clap::Parser;
-
-mod args;
+use crate::display::DisplayJson;
 
 fn read_cache() -> Option<serde_json::Value> {
     let mut buffer = String::new();
@@ -58,26 +59,6 @@ fn safe_read(user: &str) -> serde_json::Value {
             update_cache(user).expect("Unable to request api data.");
             read_cache().expect("Unable to parse json.")
         }
-    }
-}
-
-trait DisplayJson {
-    fn json_stdout(&self, key: &str);
-}
-
-impl DisplayJson for serde_json::Value {
-    fn json_stdout(&self, key: &str) {
-        fn operations(value: &Value) {
-            match value {
-                Value::Null => println!("Null"),
-                Value::Bool(x) => println!("{}", x),
-                Value::Number(x) => println!("{}", x),
-                Value::String(x) => println!("{}", x),
-                Value::Array(x) => x.iter().map(operations).collect::<()>(),
-                Value::Object(x) => x.values().map(operations).collect::<()>(),
-            };
-        }
-        operations(&self[key])
     }
 }
 

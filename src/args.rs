@@ -9,6 +9,6 @@ pub struct Args {
     #[clap(short, long)]
     pub key: String,
 
-    #[clap(short, long)]
-    pub refresh: Option<i64>
+    #[clap(short, long, default_value_t = 14400)]
+    pub refresh: i64
 }

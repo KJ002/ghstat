@@ -10,5 +10,5 @@ pub struct Args {
     pub key: String,
 
     #[clap(short, long, default_value_t = 14400)]
-    pub refresh: i64
+    pub refresh: i64,
 }

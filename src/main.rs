@@ -2,7 +2,10 @@ extern crate chrono;
 
 use chrono::prelude::*;
 use serde_json::{json, Value};
-use std::{fs::File, io::{Read, Write}};
+use std::{
+    fs::File,
+    io::{Read, Write},
+};
 
 use clap::Parser;
 
@@ -37,10 +40,11 @@ fn update_cache(user: &str) -> std::io::Result<usize> {
 }
 
 fn get_github_data(user: &str) -> serde_json::Value {
-    let mut result = match ureq::get(format!("https://api.github.com/users/{}", user).as_str()).call() {
-        Ok(response) => response.into_json::<serde_json::Value>().unwrap(),
-        Err(_) => panic!("Error"),
-    };
+    let mut result =
+        match ureq::get(format!("https://api.github.com/users/{}", user).as_str()).call() {
+            Ok(response) => response.into_json::<serde_json::Value>().unwrap(),
+            Err(_) => panic!("Error"),
+        };
 
     result["ghstats_timestamp"] = json!(Local::now().timestamp());
 
@@ -70,7 +74,7 @@ impl DisplayJson for serde_json::Value {
                 Value::Number(x) => println!("{}", x),
                 Value::String(x) => println!("{}", x),
                 Value::Array(x) => x.iter().map(operations).collect::<()>(),
-                Value::Object(x) => x.values().map(operations).collect::<()>()
+                Value::Object(x) => x.values().map(operations).collect::<()>(),
             };
         }
         operations(&self[key])

@@ -27,7 +27,7 @@ fn read_cache() -> Option<serde_json::Value> {
     }
 }
 
-fn update_cache(user: &String) -> std::io::Result<usize> {
+fn update_cache(user: &str) -> std::io::Result<usize> {
     let mut file: File = File::create("/home/james/.ghstats/cache.json")
         .expect("There was an issue fetching the the file");
 
@@ -36,7 +36,7 @@ fn update_cache(user: &String) -> std::io::Result<usize> {
     file.write(data.as_bytes())
 }
 
-fn get_github_data(user: &String) -> serde_json::Value {
+fn get_github_data(user: &str) -> serde_json::Value {
     let mut result = match ureq::get(format!("https://api.github.com/users/{}", user).as_str()).call() {
         Ok(response) => response.into_json::<serde_json::Value>().unwrap(),
         Err(_) => panic!("Error"),
@@ -47,7 +47,7 @@ fn get_github_data(user: &String) -> serde_json::Value {
     result
 }
 
-fn safe_read(user: &String) -> serde_json::Value {
+fn safe_read(user: &str) -> serde_json::Value {
     match read_cache() {
         Some(x) => x,
         None => {
@@ -58,11 +58,11 @@ fn safe_read(user: &String) -> serde_json::Value {
 }
 
 trait DisplayJson {
-    fn json_stdout(&self, key: &String);
+    fn json_stdout(&self, key: &str);
 }
 
 impl DisplayJson for serde_json::Value {
-    fn json_stdout(&self, key: &String) {
+    fn json_stdout(&self, key: &str) {
         fn operations(value: &Value) {
             match value {
                 Value::Null => println!("Null"),

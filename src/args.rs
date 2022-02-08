@@ -7,5 +7,8 @@ pub struct Args {
     pub user: String,
 
     #[clap(short, long)]
-    pub key: String
+    pub key: String,
+
+    #[clap(short, long)]
+    pub refresh: Option<i64>
 }

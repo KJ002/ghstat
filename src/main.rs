@@ -81,10 +81,13 @@ fn main() {
     let args = args::Args::parse();
 
     let mut content = safe_read(&args.user);
-
     let timestamp = content["ghstats_timestamp"].as_i64().unwrap_or_default();
+    let refresh: i64 = match args.refresh {
+        Some(delay) => delay,
+        None => 3600
+    };
 
-    if Local::now().timestamp() - timestamp >= 60 {
+    if Local::now().timestamp() - timestamp >= refresh {
         update_cache(&args.user).expect("Unable to request api data.");
         content = safe_read(&args.user)
     }
